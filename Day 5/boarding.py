@@ -16,13 +16,12 @@ order = {'F': 0, 'B': 1, 'L': 2, 'R': 3}
 passes.sort(key = lambda word: [order.get(c, ord(c)) for c in word])
 
 #Part 1
-#print(calcPos(passes[-1][:7], "F") * 8 + calcPos(passes[-1][7:], "L"))
+maxSID = calcPos(passes[-1][:7], "F") * 8 + calcPos(passes[-1][7:], "L")
+print(maxSID)
 
 #Part 2. Get the range. Then start cutting it in half and finding the smaller  
 minSID = calcPos(passes[0][:7], "F") * 8 + calcPos(passes[0][7:], "L")
-maxSID = calcPos(passes[-1][:7], "F") * 8 + calcPos(passes[-1][7:], "L")
 print(minSID)
-print(maxSID)
 
 for i in range(0, len(passes)):
   SID = calcPos(passes[i][:7], "F") * 8 + calcPos(passes[i][7:], "L")
