@@ -33,3 +33,13 @@ runCode(bootcode)
 
 #part 2
 for code in bootcode:
+  if code[0] == "nop":
+    code[0] = "jmp"
+    if runCode(bootcode) == 1:
+      break
+    code[0] = "nop"
+  elif code[0] == "jmp":
+    code[0] = "nop"
+    if runCode(bootcode) == 1:
+      break
+    code[0] = "jmp"
