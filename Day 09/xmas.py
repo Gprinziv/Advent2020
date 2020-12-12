@@ -26,3 +26,5 @@ for i in range(targetAddress):
     elif curSum == targetNumber:
       weakness = sorted([xmas[r] for r in range(i, j + 1)])
       print(weakness[0] + weakness[-1])
+
+      
