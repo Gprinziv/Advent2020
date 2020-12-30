@@ -1,2 +1,2 @@
-with open("tickets") as file:
-  rules = file.read().split("\n\n")
+with open("homework") as file:
+  equations = [i.strip() for i in file]
