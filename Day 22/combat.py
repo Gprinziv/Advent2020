@@ -32,7 +32,6 @@ def reCombat(p1, p2, subgame = False):
 
   while p1 and p2:
     if (tuple(p1), tuple(p2)) in states:
-      print("Duplicate.")
       return 1 if subgame else p1
 
     states.add((tuple(p1), tuple(p2)))
