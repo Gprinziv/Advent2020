@@ -1,65 +1,34 @@
-with open("message") as file:
+with open("message3") as file:
   raw = file.read().split("\n\n")
   rawRules = [i.strip().split(":") for i in raw[0].split("\n")]
   messages = raw[1].split("\n")
 
-#Operate on the current valid rule.
-def operate(rules, valids, i):
-  valid = valids[i]
-  temp = []
-  added = False
-  for j in range(len(valid)):
-    subrule = valid[j]
-    if type(subrule) == str:
-      temp.append(subrule)
-    else:
-      newRule = rules[subrule]
-      if type(newRule) == str:
-        temp.append(newRule)
-      else:
-        if len(newRule) > 1:
-          for newSub in newRule[1:]:
-            newValid = temp.copy() + [int(i) for i in newSub.split()] + valid[j+1:]
-            valids.append(newValid)
-            added = True
-        temp.extend([int(i) for i in newRule[0].split()])
-  valids[i] = temp
-  return added
-
-#Convert the rules list to a better structure. All subrules will be a tuple or a letter.
 rules = {}
 for rule in rawRules:
   if "\"" in rule[1]:
-    rules[int(rule[0])] = rule[1].lstrip(" \"").strip(" \"") 
+    rules[int(rule[0])] = rule[1].lstrip(" \"").strip(" \"")
+  elif "|" not in rule[1]:
+    rules[int(rule[0])] = rule[1].strip().split()
   else:
-   rules[int(rule[0])] = tuple(i.strip().lstrip() for i in rule[1].split("|"))
+    rules[int(rule[0])] = [i.lstrip().strip().split() for i in rule[1].split("|")]
 
-#Start with rule 0.
-valids = []
-for rule in rules[0]:
-  valids.append([int(i) for i in rule.split()])
+for ruleIdx in rules:
+  subrule = rules[ruleIdx]
+  if type(subrule) == str:
+    pass
+  elif type(subrule[0]) == str:
+    for i in range(len(subrule)):
+      subrule[i] = rules[int(subrule[i])]
+  else:
+    for i in range(len(subrule)):
+      for j in range(len(subrule[i])):
+        subrule[i][j] = rules[int(subrule[i][j])]
 
-while True:
-  finish = True
+print(rules[0])
 
-  for i in range(len(valids)): #for each rule in the master list of rules
-    added = operate(rules, valids, i)
+def decode(grok):
+  for smallGrok in grok:
+    pass
 
-    if added:
-      finish = False
-    for subrule in valids[i]:
-      if type(subrule) == int:
-        finish = False
-
-  if finish:
-    break
-
-for i in range(len(valids)):
-  valids[i] = "".join(valids[i])
-
-total = 0
-for message in messages:
-  if any(valid == message for valid in valids):
-    total += 1
-
-print(total)
+decode(rules[0])
+print(rules[0])
