@@ -3,32 +3,42 @@ with open("message3") as file:
   rawRules = [i.strip().split(":") for i in raw[0].split("\n")]
   messages = raw[1].split("\n")
 
-rules = {}
+print(rawRules)
+
+
+rulesDict = {}
 for rule in rawRules:
   if "\"" in rule[1]:
-    rules[int(rule[0])] = rule[1].lstrip(" \"").strip(" \"")
+    rulesDict[int(rule[0])] = rule[1].lstrip(" \"").strip(" \"")
   elif "|" not in rule[1]:
-    rules[int(rule[0])] = rule[1].strip().split()
+    rulesDict[int(rule[0])] = rule[1].strip().split()
   else:
-    rules[int(rule[0])] = [i.lstrip().strip().split() for i in rule[1].split("|")]
+    rulesDict[int(rule[0])] = [i.lstrip().strip().split() for i in rule[1].split("|")]
 
-for ruleIdx in rules:
-  subrule = rules[ruleIdx]
-  if type(subrule) == str:
-    pass
-  elif type(subrule[0]) == str:
-    for i in range(len(subrule)):
-      subrule[i] = rules[int(subrule[i])]
-  else:
-    for i in range(len(subrule)):
-      for j in range(len(subrule[i])):
-        subrule[i][j] = rules[int(subrule[i][j])]
+#Using a dictionary of rules, it translates whatever the current rule you're looking at.
+#Rules are a list with some combination of strings or lists.
+#Read a rule sequentially.
+#If the current instruction is a string object, simply append it to each password.
+#If the current instruction is a list object, copy the password for each item in the list, then decode.
+#Result will be a list of unjoined strings.
+def decode(rule, rulesDict):
+  passList = [[]]
+  for instruction in rule:
+    subrule = rulesDict[int(instruction)]
+    if type(subrule) == str:
+      for password in passList:
+        password.append(subrule)
+    else:
+      tempList = []
+      for password in passList:
+        for subsubrule in subrule:
+          for s in decode(subsubrule, rulesDict):
+            tempList.append(password + s)
+      passList = tempList
+  return passList 
 
-print(rules[0])
-
-def decode(grok):
-  for smallGrok in grok:
-    pass
-
-decode(rules[0])
-print(rules[0])
+finalList = decode(rulesDict[0], rulesDict)
+passwords = []
+for f in finalList:
+  passwords.append("".join(f))
+print(passwords)
