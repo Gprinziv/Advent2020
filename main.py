@@ -1,11 +1,9 @@
-with open("message3") as file:
+with open("message") as file:
   raw = file.read().split("\n\n")
   rawRules = [i.strip().split(":") for i in raw[0].split("\n")]
   messages = raw[1].split("\n")
 
-print(rawRules)
-
-
+#Generate a human-readable dictionary to store and access the rules for later.
 rulesDict = {}
 for rule in rawRules:
   if "\"" in rule[1]:
@@ -42,3 +40,6 @@ passwords = []
 for f in finalList:
   passwords.append("".join(f))
 print(passwords)
+print(messages)
+
+print(sum(i == j for i in passwords for j in messages))
