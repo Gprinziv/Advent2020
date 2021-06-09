@@ -1,4 +1,4 @@
-with open("message") as file:
+with open("message3") as file:
   raw = file.read().split("\n\n")
   rawRules = [i.strip().split(":") for i in raw[0].split("\n")]
   messages = raw[1].split("\n")
@@ -12,6 +12,23 @@ for rule in rawRules:
     rulesDict[int(rule[0])] = rule[1].strip().split()
   else:
     rulesDict[int(rule[0])] = [i.lstrip().strip().split() for i in rule[1].split("|")]
+
+#REgular Expressions?
+
+
+
+
+""" Recursive solution. Works only for small data sets.
+#Generate a human-readable dictionary to store and access the rules for later.
+rulesDict = {}
+for rule in rawRules:
+  if "\"" in rule[1]:
+    rulesDict[int(rule[0])] = rule[1].lstrip(" \"").strip(" \"")
+  elif "|" not in rule[1]:
+    rulesDict[int(rule[0])] = rule[1].strip().split()
+  else:
+    rulesDict[int(rule[0])] = [i.lstrip().strip().split() for i in rule[1].split("|")]
+
 
 #Using a dictionary of rules, it translates whatever the current rule you're looking at.
 #Rules are a list with some combination of strings or lists.
@@ -43,3 +60,4 @@ print(passwords)
 print(messages)
 
 print(sum(i == j for i in passwords for j in messages))
+"""
