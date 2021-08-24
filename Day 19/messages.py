@@ -1,20 +1,20 @@
 with open("message3") as file:
   raw = file.read().split("\n\n")
-  rawRules = [i.strip().split(":") for i in raw[0].split("\n")]
-  messages = raw[1].split("\n")
 
-#Generate a human-readable dictionary to store and access the rules for later.
 rulesDict = {}
-for rule in rawRules:
+for rule in raw[0].split("\n"):
+  rule = rule.split(":")
   if "\"" in rule[1]:
-    rulesDict[int(rule[0])] = rule[1].lstrip(" \"").strip(" \"")
-  elif "|" not in rule[1]:
-    rulesDict[int(rule[0])] = rule[1].strip().split()
+    subrules = rule[1][2]
+  elif "|" in rule[1]:
+    subrules = [[int(j) for j in i.strip().split()] for i in rule[1].strip().split("|")]
   else:
-    rulesDict[int(rule[0])] = [i.lstrip().strip().split() for i in rule[1].split("|")]
+    subrules = [int(i) for i in rule[1].strip().split(" ")]
+  rulesDict[int(rule[0])] = subrules
+messages = raw[1].split("\n")
 
-#Regular Expressions?
 
+#Now we need to..... ugh, I dunno?
 
 
 
