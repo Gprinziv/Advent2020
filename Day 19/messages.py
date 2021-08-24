@@ -14,7 +14,7 @@ for rule in raw[0].split("\n"):
 messages = raw[1].split("\n")
 
 
-#Now we need to..... ugh, I dunno?
+#Now we need to..... ugh, I dunno? Need to get Rule 0 into a string like: "abbb[ab|ba][[ba|ab]|a[bb|aa]baa"
 
 
 
