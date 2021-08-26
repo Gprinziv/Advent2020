@@ -9,7 +9,7 @@ def makeRules():
     elif "|" in rule[1]:
       subrules = [[int(j)for j in i.strip().split()] for i in rule[1].strip().split("|")]
     else:
-      subrules = [[int(i) for i in rule[1].strip().split(" ")]]
+      subrules = [int(i) for i in rule[1].strip().split(" ")]
     rulesDict[int(rule[0])] = subrules
   messages = raw[1].split("\n")
 
@@ -71,15 +71,35 @@ def isvalid(rule0, message):
   print(message + ": No matches")
   return False
 
-#Need to format Rule 0 into a string like: "abbb[ab|ba][[ba|ab]b|a[bb|aa]]baa"
+#Input: [4, 1, 5]
+#A list of subrules to be evaluated.
+#Output: "a[[aa|bb][ab|ba]|[ab|ba][aa|bb]]b"
+#A string representation of the branching paths one can take.
 def getRule0(rulesDict):
-  #solve this, kid.
+  while not all(type(i) == str for i in rulesDict[0]):
+    for i in range(len(rulesDict[0])):
+      instruction = rulesDict[0][i]
+      if type(instruction) == str:
+        pass
+      else:
+        newInst = rulesDict[instruction]
+        if len(newInst) == 1:
+          #then there's no split. Just plug the new thing(s) in here sequentially
+          break
+        else:
+          #There's a split, Append ["[", i[0], "|", i[1], "]"] 
+          break
+
+
+
+    print("You got work, kiddo!")
+    break
+  print(rulesDict[0])
   return rulesDict[0]
 
 rulesDict, messages = makeRules()
 print(rulesDict[0])
-
-rule0 = "a[[aa|bb][ab|ba]|[ab|ba][aa|bb]]b"
-#rule0 = getRule0(rulesDict)
-total = sum(isvalid(rule0, message) for message in messages)
-print("Final count: " + str(total))
+#rulesDict[0] = "a[[aa|bb][ab|ba]|[ab|ba][aa|bb]]b"
+rule0 = getRule0(rulesDict)
+#total = sum(isvalid(rule0, message) for message in messages)
+#print("Final count: " + str(total))
