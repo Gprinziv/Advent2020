@@ -1,5 +1,5 @@
-def makeRules():
-  with open("message") as file:
+def makeRules(fn):
+  with open(fn) as file:
     raw = file.read().split("\n\n")
   rulesDict = {}
   for rule in raw[0].split("\n"):
@@ -20,11 +20,6 @@ def printRules(rulesDict):
   for rule in rulesDict:
     print(str(rule) + ": " + str(rulesDict[rule]))
   print("Done.")
-
-def part2():
-  global rulesDict
-  rulesDict[8] = [[42],[42, 8]]
-  rulesDict[11] = [[42, 31],[42, 11, 31]]
 
 def isvalid(rule0, message):
   ptrs = [0]
@@ -81,34 +76,45 @@ def isvalid(rule0, message):
 
 #Input: [4, 1, 5]
 #Output: "a[[aa|bb][ab|ba]|[ab|ba][aa|bb]]b"
-#Part 2, handle loops. rule0 = 42 * x + 31 * y. Figure out how long each 42 is and each 31 is, then check that against the length of the message?
-#More in isvalid.
-def getRule0(rulesDict):
-  rule0 = rulesDict[0]
-  while not all(type(x) == str for x in rule0):
+def getRule(ruleIdx):
+  global rulesDict
+  rule = rulesDict[ruleIdx]
+  while not all(type(x) == str for x in rule):
     i = 0
-    while i < len(rule0):
-      instruction = rule0[i]
+    if type(rule[0]) == list:
+        rule = ["["] + rule[0] + ["|"] + rule[1] + ["]"]
+
+    while i < len(rule):
+      instruction = rule[i]
       #print(str(i) + ": " + str(instruction))
       if type(instruction) == str:
         pass
       else:
         newInst = rulesDict[instruction]
         if type(newInst) == int or type(newInst) == str:
-          rule0 = rule0[:i] + [newInst] + rule0[i + 1:]
+          rule = rule[:i] + [newInst] + rule[i + 1:]
         else:
           if type(newInst[0]) == int:
-            rule0 = rule0[:i] + newInst + rule0[i + 1:]
+            rule = rule[:i] + newInst + rule[i + 1:]
           else:
-            rule0 = rule0[:i] + ["["] + newInst[0] + ["|"] + newInst[1] + ["]"] + rule0[i + 1:]
+            rule = rule[:i] + ["["] + newInst[0] + ["|"] + newInst[1] + ["]"] + rule[i + 1:]
       i += 1
 
-  rule0 = "".join(rule0)
-  #print(rule0)
-  return rule0
+  rule = "".join(rule)
+  return rule
 
-rulesDict, messages = makeRules()
-#part2(). Maybe don't need it?
-rule0 = getRule0(rulesDict)
+def part2():
+  rule42 = getRule(42)
+  rule31 = getRule(31)
+  #Okay so if we know what 42 and 31 evaluate to independently, we can search for any string that is 42 + 42*x + 31 using.. regex?
+  #ORRRRR you could evaluate 42, save progress, then repeat. Once it fails, go back and evaluate against 8 until it fails.
+  #Issue now is size checking or bound checking.
+  #Epihpany!
+  pass
+
+rulesDict, messages = makeRules("message")
+rule0 = getRule(0)
 total = sum(isvalid(rule0, message) for message in messages)
 print("Final count: " + str(total))
+
+part2()
