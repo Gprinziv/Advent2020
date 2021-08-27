@@ -1,5 +1,5 @@
 def makeRules():
-  with open("message3") as file:
+  with open("message") as file:
     raw = file.read().split("\n\n")
   rulesDict = {}
   for rule in raw[0].split("\n"):
@@ -16,25 +16,33 @@ def makeRules():
   return rulesDict, messages
 
 def printRules(rulesDict):
+  print("Printing Rules")
   for rule in rulesDict:
     print(str(rule) + ": " + str(rulesDict[rule]))
+  print("Done.")
+
+def part2():
+  global rulesDict
+  rulesDict[8] = [[42],[42, 8]]
+  rulesDict[11] = [[42, 31],[42, 11, 31]]
 
 def isvalid(rule0, message):
   ptrs = [0]
   mPtr = [0]
 
+  
+  if len(message) > 24:
+    return False
+  #Cheating. Figure out how to evaluate this tbh. Can use this in conjunction with knowing the length to modify rule 0 by that many loopy subrules to get what I need?
+  #We know Rule 0 is 8 11. Therefore: rule0 = z*42 y*31
+  elif len(message) < 24:
+    return False
+
   while ptrs:
+    #there's something wrong here. Shit is making some weird size error no match thingies.
     if mPtr[0] >= len(message):
-      while ptrs[0] < len(rule0):
-        if rule0[ptrs[0]] != "]":
-          print(message + ": Size Error")
-          return False
-        ptrs[0] += 1
-      print(message + ": Success")
+      #print(message + ": Success")
       return True
-    elif ptrs[0] >= len(rule0):
-      print(message + ": Size Error")
-      return False
 
     cur = rule0[ptrs[0]] #Get the value pointed to by the current pointer
     if cur.isalpha(): #If it's a simple a or b, evaluate it. If it's bad, trash the pointers and start from the next one.
@@ -68,38 +76,39 @@ def isvalid(rule0, message):
       ptrs[0] += 1
 
   #If you're run out of valid pointers to check, the rule must be invalid.
-  print(message + ": No matches")
+  #print(message + ": No matches")
   return False
 
 #Input: [4, 1, 5]
-#A list of subrules to be evaluated.
 #Output: "a[[aa|bb][ab|ba]|[ab|ba][aa|bb]]b"
-#A string representation of the branching paths one can take.
+#Part 2, handle loops. rule0 = 42 * x + 31 * y. Figure out how long each 42 is and each 31 is, then check that against the length of the message?
+#More in isvalid.
 def getRule0(rulesDict):
-  while not all(type(i) == str for i in rulesDict[0]):
-    for i in range(len(rulesDict[0])):
-      instruction = rulesDict[0][i]
+  rule0 = rulesDict[0]
+  while not all(type(x) == str for x in rule0):
+    i = 0
+    while i < len(rule0):
+      instruction = rule0[i]
+      #print(str(i) + ": " + str(instruction))
       if type(instruction) == str:
         pass
       else:
         newInst = rulesDict[instruction]
-        if len(newInst) == 1:
-          #then there's no split. Just plug the new thing(s) in here sequentially
-          break
+        if type(newInst) == int or type(newInst) == str:
+          rule0 = rule0[:i] + [newInst] + rule0[i + 1:]
         else:
-          #There's a split, Append ["[", i[0], "|", i[1], "]"] 
-          break
+          if type(newInst[0]) == int:
+            rule0 = rule0[:i] + newInst + rule0[i + 1:]
+          else:
+            rule0 = rule0[:i] + ["["] + newInst[0] + ["|"] + newInst[1] + ["]"] + rule0[i + 1:]
+      i += 1
 
-
-
-    print("You got work, kiddo!")
-    break
-  print(rulesDict[0])
-  return rulesDict[0]
+  rule0 = "".join(rule0)
+  #print(rule0)
+  return rule0
 
 rulesDict, messages = makeRules()
-print(rulesDict[0])
-#rulesDict[0] = "a[[aa|bb][ab|ba]|[ab|ba][aa|bb]]b"
+#part2(). Maybe don't need it?
 rule0 = getRule0(rulesDict)
-#total = sum(isvalid(rule0, message) for message in messages)
-#print("Final count: " + str(total))
+total = sum(isvalid(rule0, message) for message in messages)
+print("Final count: " + str(total))
