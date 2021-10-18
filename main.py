@@ -21,25 +21,45 @@ def printRules(rulesDict):
     print(str(rule) + ": " + str(rulesDict[rule]))
   print("Done.")
 
-def isvalid(rule0, message):
+#Takes a formatted password string and calculates the length.
+#Assumes all branches of the password are uniform in length.
+#Input: "a[[aa|bb][ab|ba]|[ab|ba][aa|bb]]b"
+#Output: 6
+def getLen(rule): #Computes the length of password rules for isvalid.
+  cur, count = 0, 0
+  while cur < len(rule):
+    if rule[cur] in ("a", "b"):
+      count += 1
+    elif rule[cur] == "|":
+      depth = 1
+      while depth > 0:
+        cur += 1
+        if rule[cur] == "|":
+          depth += 1
+        elif rule[cur] == "]":
+          depth -= 1
+    cur += 1
+
+  return count
+
+#Determines if a given message is valid against the formatted pasword string
+#Inputs: (String) formatted password string, (String) message
+#Output: Boolean 
+def isValid(rule, message):
   ptrs = [0]
   mPtr = [0]
+  ruleLen = getLen(rule)
 
-  
-  if len(message) > 24:
-    return False
-  #Cheating. Figure out how to evaluate this tbh. Can use this in conjunction with knowing the length to modify rule 0 by that many loopy subrules to get what I need?
-  #We know Rule 0 is 8 11. Therefore: rule0 = z*42 y*31
-  elif len(message) < 24:
+  if len(message) != ruleLen:
+    print("Mismatch: " + message + " and " + str(ruleLen))
     return False
 
+  #Because we know that the length of the message matches the check exactly we know that once you get past the nth letter, you've passed.
   while ptrs:
-    #there's something wrong here. Shit is making some weird size error no match thingies.
     if mPtr[0] >= len(message):
-      #print(message + ": Success")
       return True
 
-    cur = rule0[ptrs[0]] #Get the value pointed to by the current pointer
+    cur = rule[ptrs[0]] #Get the value pointed to by the current pointer
     if cur.isalpha(): #If it's a simple a or b, evaluate it. If it's bad, trash the pointers and start from the next one.
       if message[mPtr[0]] == cur:
         ptrs[0] += 1
@@ -50,9 +70,9 @@ def isvalid(rule0, message):
     elif cur == "[": #Create a second pointer after the relevant "|". Watch for errant "["s. Increment pointer.
       tempPtr, depth = ptrs[0] + 1, 1
       while depth > 0:
-        if rule0[tempPtr] == "[":
+        if rule[tempPtr] == "[":
           depth += 1
-        elif rule0[tempPtr] == "|":
+        elif rule[tempPtr] == "|":
           depth -= 1
         tempPtr += 1
       ptrs.append(tempPtr)
@@ -62,18 +82,18 @@ def isvalid(rule0, message):
       depth = 1
       while depth > 0:
         ptrs[0] += 1
-        if rule0[ptrs[0]] == "[":
+        if rule[ptrs[0]] == "[":
           depth += 1
-        elif rule0[ptrs[0]] == "]":
+        elif rule[ptrs[0]] == "]":
           depth -= 1
       ptrs[0] += 1
     else: #Cur is at a "]", just increment it.
       ptrs[0] += 1
 
   #If you're run out of valid pointers to check, the rule must be invalid.
-  #print(message + ": No matches")
   return False
 
+#Takes a set of rules and creates a formatter password string.
 #Input: [4, 1, 5]
 #Output: "a[[aa|bb][ab|ba]|[ab|ba][aa|bb]]b"
 def getRule(ruleIdx):
@@ -103,18 +123,43 @@ def getRule(ruleIdx):
   rule = "".join(rule)
   return rule
 
+#Check message segments against rule 42 twice, then check it against 42 until it fails, then check it against 31 until it fails or you pass.
 def part2():
-  rule42 = getRule(42)
-  rule31 = getRule(31)
-  #Okay so if we know what 42 and 31 evaluate to independently, we can search for any string that is 42 + 42*x + 31 using.. regex?
-  #ORRRRR you could evaluate 42, save progress, then repeat. Once it fails, go back and evaluate against 8 until it fails.
-  #Issue now is size checking or bound checking.
-  #Epihpany!
-  pass
+  rule42, rule31 = getRule(42), getRule(31)
+  ruleLen = getLen(rule42)
+  count = 0
+
+  for message in messages:
+    if len(message) % ruleLen != 0 or len(message) < (ruleLen * 3):
+      pass #Don't even bother validating.
+    elif len(message) == (ruleLen * 3):
+      count += 1 if isValid(rule42 + rule42 + rule31, message) else 0
+    else:
+      if isValid(rule42, message[0:ruleLen]) and isValid(rule42, message[ruleLen:2*ruleLen]) and isValid(rule31, message[-ruleLen:]):
+        midSegs = int(len(message) / ruleLen) - 3
+        flag = 42
+        while midSegs > 0:
+          #There's something wrong here. Figure it out.
+          #FIGURED IT OUT! FOR EACH 31, THERE MUST BE *AT LEAST* 2N+1 42s!
+          #Therefore, if midSegs is odd, half rounded up must be 41, then you can use this flag priority.
+          if flag == 42: 
+            flag = 42 if isValid(rule42, message[(midSegs + 1) * -ruleLen:midSegs * -ruleLen]) else 31
+          if flag == 31:
+            flag = 31 if isValid(rule31, message[(midSegs + 1) * -ruleLen:midSegs * -ruleLen]) else 0
+          midSegs -= 1
+        count += 1 if flag > 0 else 0
+      else:
+        pass
+
+    print("Count: " + str(count))
+  return count
+
 
 rulesDict, messages = makeRules("message")
 rule0 = getRule(0)
-total = sum(isvalid(rule0, message) for message in messages)
-print("Final count: " + str(total))
+print(getLen(rule0))
+#total = sum(isValid(rule0, message) for message in messages)
+#print("Final count: " + str(total))
 
-part2()
+p2count = part2()
+print("Final count: " + str(p2count))
