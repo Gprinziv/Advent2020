@@ -51,7 +51,6 @@ def isValid(rule, message):
   ruleLen = getLen(rule)
 
   if len(message) != ruleLen:
-    print("Mismatch: " + message + " and " + str(ruleLen))
     return False
 
   #Because we know that the length of the message matches the check exactly we know that once you get past the nth letter, you've passed.
@@ -137,21 +136,17 @@ def part2():
     else:
       if isValid(rule42, message[0:ruleLen]) and isValid(rule42, message[ruleLen:2*ruleLen]) and isValid(rule31, message[-ruleLen:]):
         midSegs = int(len(message) / ruleLen) - 3
+        valid42 = all(isValid(rule42, message[(2+i)*ruleLen:(3+i)*ruleLen]) for i in range(int(midSegs/2) + midSegs%2))
+
         flag = 42
-        while midSegs > 0:
-          #There's something wrong here. Figure it out.
-          #FIGURED IT OUT! FOR EACH 31, THERE MUST BE *AT LEAST* 2N+1 42s!
-          #Therefore, if midSegs is odd, half rounded up must be 41, then you can use this flag priority.
+        for i in range(int(midSegs/2), 0, -1):
           if flag == 42: 
-            flag = 42 if isValid(rule42, message[(midSegs + 1) * -ruleLen:midSegs * -ruleLen]) else 31
+            flag = 42 if isValid(rule42, message[(i+1)*-ruleLen:i*-ruleLen]) else 31
           if flag == 31:
-            flag = 31 if isValid(rule31, message[(midSegs + 1) * -ruleLen:midSegs * -ruleLen]) else 0
-          midSegs -= 1
-        count += 1 if flag > 0 else 0
+            flag = 31 if isValid(rule31, message[(i+1)*-ruleLen:i*-ruleLen]) else 0
+        count += 1 if flag > 0 and valid42 else 0
       else:
         pass
-
-    print("Count: " + str(count))
   return count
 
 
