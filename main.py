@@ -1,6 +1,5 @@
 from os import name
 
-
 with open("tiletest") as file:
   tiles = [x.split("\n") for x in file.read().split("\n\n")]
   for i in range(len(tiles)):
@@ -8,7 +7,6 @@ with open("tiletest") as file:
 
 edgeDict = {}
 matches = {}
-
 for tile in tiles:
   left =  "".join(tile[1][i][0] for i in range(len(tile[1])))
   right = "".join(tile[1][i][-1] for i in range(len(tile[1])))
@@ -28,10 +26,6 @@ for tile, match in matches.items():
     total *= tile
 print(total)
 
-
-print(edgeDict)
-print(matches)
-
 #Choose one of the tiles that only has two matches and designate it (0, 0). Choose one of the matches and designate it (0,1).
 #Find the side of (0,1) that matches the (0,0), orient it, and repeat, finsing the side of (0,2). Repeat until you get to the "corner".
 #Then find the other match for the corner, (1, n), and work backwards to (1,0). Then (2, 0) to (2, n) and repeat. I could clean out the "matches" map as I go to save time.
@@ -39,21 +33,28 @@ print(matches)
 #edgeDict orientation: N, S, W, E, RN, RS, RW, RE
 
 #Get the first corner to kick things off.
-for key, val in matches.items():
-  if len(val) == 2:
-    next = key
-    nextMatch = val[0]
-    break
+def part2(edgeDict, matches):
+  for key, val in matches.items():
+    if len(val) == 2:
+      next = key
+      nextMatch = val[0]
+      break
+  tilemap = [[]]
+  print(next)
+  print(nextMatch)
+  matchEdge = edgeDict[next].index(list(set(edgeDict[next]) & set(edgeDict[nextMatch]))[0])
 
-print(next)
-print(nextMatch)
-while matches:
-  matchEdge = list(set(edgeDict[next]) & set(edgeDict[nextMatch]))
-  #Both the reversed and non-reverse will match. Better to take the non-reverse and only flip the entire row if we find that we need to on the next go.
-  #We know that once we get the first edge of row 2, the orientation will be locked.
-  print (matchEdge)
-  break
-print(edgeDict[next].index(matchEdge[0]))
+
+
+  tilemap[0][0] = [next, ]
+
+
+  while matches:
+    matchEdge = list(set(edgeDict[next]) & set(edgeDict[nextMatch]))
+    #Both the reversed and non-reverse will match. Better to take the non-reverse and only flip the entire row if we find that we need to on the next go.
+    #We know that once we get the first edge of row 2, the orientation will be locked.
+    print (matchEdge)
+    break
 #So we know which direction to go.
 #Now, if the match is on 0 (N), we know to look for nextMatch's edgeDict[1] (S). If the match is 2 (W), we know to look for 3.
 #Pop next. Append next to the master list, sublist depth. Indicate needed rotations to make it go east.
@@ -65,7 +66,7 @@ print(edgeDict[next].index(matchEdge[0]))
 #Find the next tile, store it and what needs to be done to it, then use that info to find the next tile.
 #Corner found and arbitrary next is found. Figure out the orientation of corner such that it fits into the NW, then the orientation of next, then find next. 
 #Store it in a 2d array of tuples? 
-tilemap = []
+
 
 #Figure out what the next tile is sequentially based on the position of the match. Be sure to store what modifications the tiles need 
 def getNext():
