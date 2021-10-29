@@ -10,7 +10,7 @@ def part1():
   for tile in tiles:
     left =  "".join(tile[1][i][0] for i in range(len(tile[1])))
     right = "".join(tile[1][i][-1] for i in range(len(tile[1])))
-    edgeDict[tile[0]] = [tile[1][0], tile[1][-1], left, right, tile[1][0][::-1], tile[1][-1][::-1], left[::-1], right[::-1]]
+    edgeDict[tile[0]] = [tile[1][0], right, tile[1][-1], left,  tile[1][0][::-1], right[::-1], tile[1][-1][::-1], left[::-1]]
     matches[tile[0]] = []
 
   for i in range(len(tiles)):
@@ -37,26 +37,42 @@ def part1():
 #Get the first corner to kick things off.
 def part2(edgeDict, matches):
   facings = {0:(), 1:(), 2:(), 3:() ,4:() ,5:() , 6:(), 7:()}
-
+  target = 0
 
   tilemap = [[]]
-  next, nextMatch = getCorner(matches)
-  print("First corner is: " + str(next))        ##Print test
-  print("(0,1) is: " + str(nextMatch))          ##Print test
+  for key, val in matches.items():
+    if len(val) == 2:
+      next = key
+      nextMatch = val[0]
+
+  #We want next (corner) to face the matched face east and nextMatch to face west.
+  matchEdge = sorted(list(set(edgeDict[next]) & set(edgeDict[nextMatch])))[0]
+  #edgeDict orientation: N, E, S, W, RN, RE, RS, RW
+  rotations = edgeDict[next].index(matchEdge) - 1
+  print("Rotations: " + str(rotations)) # This seems right. Need to check for reversedness, too.
+  rotations = edgeDict[nextMatch].index(matchEdge) - 3 #this doesn't work. Reversedness isn't checked.
 
   
-  matchEdge = sorted(list(set(edgeDict[next]) & set(edgeDict[nextMatch])))[0]
-  print(edgeDict[next].index(matchEdge))
+  print(edgeDict[next].index(matchEdge)) #Only need to reference this on the first run.
   print(edgeDict[nextMatch].index(matchEdge))
-
-
-
-
-  #edgeDict orientation: N, S, W, E, RN, RS, RW, RE
+  print("First corner is: " + str(next))        ##Print test
+  print("(0,1) is: " + str(nextMatch))          ##Print test
 
   #Object tile: [tilenumber, rotation (90 degrees clockwise), reversed]
   tilemap[0].append([next, False, 0])
   print(tilemap)
+
+
+
+
+
+
+
+
+
+
+
+
 
   while matches:
     #Both the reversed and non-reverse will match. Better to take the non-reverse and only flip the entire row if we find that we need to on the next go.
