@@ -47,11 +47,13 @@ def part2(edgeDict, matches):
 
   #We want next (corner) to face the matched face east and nextMatch to face west.
   matchEdge = sorted(list(set(edgeDict[next]) & set(edgeDict[nextMatch])))[0]
+  
   #edgeDict orientation: N, E, S, W, RN, RE, RS, RW
   rotations = edgeDict[next].index(matchEdge) - 1
-  print("Rotations: " + str(rotations)) # This seems right. Need to check for reversedness, too.
-  rotations = edgeDict[nextMatch].index(matchEdge) - 3 #this doesn't work. Reversedness isn't checked.
-
+  print("Rotations: " + str(rotations)) #This seems right. Need to check for reversedness, too.
+  rotations = edgeDict[nextMatch].index(matchEdge) - 3 
+  print("Rotations: " + str(rotations)) #This doesn't work. Reversedness isn't checked. 
+  #Reversedness. If the matchEdge is greater than 3, add a reversed flag and increase the number to subtract by 4.
   
   print(edgeDict[next].index(matchEdge)) #Only need to reference this on the first run.
   print(edgeDict[nextMatch].index(matchEdge))
