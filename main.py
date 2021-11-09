@@ -47,40 +47,39 @@ def part2(edgeDict, matches):
 
   #We want next (corner) to face the matched face east and nextMatch to face west.
   matchEdge = sorted(list(set(edgeDict[next]) & set(edgeDict[nextMatch])))[0]
-  
   #edgeDict orientation: N, E, S, W, RN, RE, RS, RW
-  rotations = edgeDict[next].index(matchEdge) - 1
-  print("Rotations: " + str(rotations)) #This seems right. Need to check for reversedness, too.
-  rotations = edgeDict[nextMatch].index(matchEdge) - 3 
-  print("Rotations: " + str(rotations)) #This doesn't work. Reversedness isn't checked. 
-  #Reversedness. If the matchEdge is greater than 3, add a reversed flag and increase the number to subtract by 4.
-  
-  print(edgeDict[next].index(matchEdge)) #Only need to reference this on the first run.
-  print(edgeDict[nextMatch].index(matchEdge))
-  print("First corner is: " + str(next))        ##Print test
-  print("(0,1) is: " + str(nextMatch))          ##Print test
 
-  #Object tile: [tilenumber, rotation (90 degrees clockwise), reversed]
-  tilemap[0].append([next, False, 0])
+
+  reversed = False
+  rotations = edgeDict[next].index(matchEdge)
+  if rotations > 3:
+    rotations -= 5
+    reversed = True
+  else: 
+    rotations -= 1 #Facing this one east
+  print("Rotations: " + str(rotations))
+  tilemap[0].append([next, reversed, rotations])
+  matches.pop(next)
+
+  reversed = False
+  rotations = edgeDict[nextMatch].index(matchEdge)
+  if rotations > 3:
+    rotations -= 8
+    reversed = True
+  else: 
+    rotations -= 3 #Facing this one west.
+  print("Rotations: " + str(rotations))
+  tilemap[0].append([nextMatch, reversed, rotations])
+  #Rotations can be negative. That's fine.
+  matches.pop(nextMatch)
+
+  #Object tile: [tilenumber, reversed, rotation (1 = 90 degrees clockwise)]
   print(tilemap)
+  print(matches)
+
+#pop these two matches from the table.
 
 
-
-
-
-
-
-
-
-
-
-
-
-  while matches:
-    #Both the reversed and non-reverse will match. Better to take the non-reverse and only flip the entire row if we find that we need to on the next go.
-    #We know that once we get the first edge of row 2, the orientation will be locked.
-    print (matchEdge)
-    break
 #So we know which direction to go.
 #Now, if the match is on 0 (N), we know to look for nextMatch's edgeDict[1] (S). If the match is 2 (W), we know to look for 3.
 #Pop next. Append next to the master list, sublist depth. Indicate needed rotations to make it go east.
