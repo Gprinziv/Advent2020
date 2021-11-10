@@ -32,54 +32,67 @@ def part1():
 #Find the side of (0,1) that matches the (0,0), orient it, and repeat, finsing the side of (0,2). Repeat until you get to the "corner".
 #Then find the other match for the corner, (1, n), and work backwards to (1,0). Then (2, 0) to (2, n) and repeat. I could clean out the "matches" map as I go to save time.
 
+def getRotations(target, rotations):
+  f = {"North":0, "East":1, "South":2, "West":3}
+  invert = False
+    
+  if rotations > 3:
+    rotations -= f[target] + 4
+    invert = True
+  else: 
+    rotations -= f[target]
 
+  return [invert, rotations]
 
 #Get the first corner to kick things off.
 def part2(edgeDict, matches):
-  facings = {0:(), 1:(), 2:(), 3:() ,4:() ,5:() , 6:(), 7:()}
-  target = 0
-
   tilemap = [[]]
   for key, val in matches.items():
     if len(val) == 2:
-      next = key
+      corner = key
       nextMatch = val[0]
+  row = 0
 
   #We want next (corner) to face the matched face east and nextMatch to face west.
-  matchEdge = sorted(list(set(edgeDict[next]) & set(edgeDict[nextMatch])))[0]
-  #edgeDict orientation: N, E, S, W, RN, RE, RS, RW
+  matchEdge = sorted(list(set(edgeDict[corner]) & set(edgeDict[nextMatch])))[0]
 
+  matchIdx = edgeDict[corner].index(matchEdge)
+  tile = [corner] + getRotations("East", matchIdx)
+  tilemap[row].append(tile)
+  matches.pop(corner)
 
-  reversed = False
-  rotations = edgeDict[next].index(matchEdge)
-  if rotations > 3:
-    rotations -= 5
-    reversed = True
-  else: 
-    rotations -= 1 #Facing this one east
-  print("Rotations: " + str(rotations))
-  tilemap[0].append([next, reversed, rotations])
-  matches.pop(next)
-
-  reversed = False
-  rotations = edgeDict[nextMatch].index(matchEdge)
-  if rotations > 3:
-    rotations -= 8
-    reversed = True
-  else: 
-    rotations -= 3 #Facing this one west.
-  print("Rotations: " + str(rotations))
-  tilemap[0].append([nextMatch, reversed, rotations])
-  #Rotations can be negative. That's fine.
+  matchIdx = edgeDict[nextMatch].index(matchEdge)
+  tile = [nextMatch] + getRotations("West", matchIdx)
+  tilemap[row].append(tile)
   matches.pop(nextMatch)
+  #edgeDict orientation: N, E, S, W, RN, RE, RS, RW
 
   #Object tile: [tilenumber, reversed, rotation (1 = 90 degrees clockwise)]
   print(tilemap)
   print(matches)
 
-#pop these two matches from the table.
 
+  #This is wild and crazy and untested and broken. matchIdx is only looking for the opposite, but that's obviously a problem for turns.
+  target = "West"
+  while matches:
+    matchEdge = edgeDict[nextMatch][(matchIdx + 2) % 4]
+    for match in matches:
+      if matchEdge in edgeDict[match]:
+        nextMatch = match
+        matchIdx = edgeDict[nextMatch].index(matchEdge)
+        tile = [nextMatch] + getRotations(target, matchIdx)
+        tilemap[row].append(tile)
+        if len(matches[nextMatch == 2]):
+          pass
+        elif len(matches[nextMatch == 3]):
+          target = "South"
+        matches.pop(nextMatch)
+        break
 
+    #Both the reversed and non-reverse will match. Better to take the non-reverse and only flip the entire row if we find that we need to on the next go.
+    #We know that once we get the first edge of row 2, the orientation will be locked.
+    print (matchEdge)
+    break
 #So we know which direction to go.
 #Now, if the match is on 0 (N), we know to look for nextMatch's edgeDict[1] (S). If the match is 2 (W), we know to look for 3.
 #Pop next. Append next to the master list, sublist depth. Indicate needed rotations to make it go east.
