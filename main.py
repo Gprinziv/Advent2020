@@ -27,32 +27,29 @@ def part1():
 
   return edgeDict, matches
 
-def getRotations(target, rotations):
-  f = {"North":0, "East":1, "South":2, "West":3}
+#Row ends target = 2, even row = 1, odd row = 3
+def getEdge(edgeList, matchIdx, target):
+  revMod = 0 if matchIdx <= 3 else 4
+  edge = edgeList[(matchIdx + target) % 4 + revMod]
+  return edge
+
+def addToMap(nextMatch, matchIdx, target, tilemap, row):
+  f = {"East": 1, "South": 2, "West": 3}
   invert = False
-    
-  if rotations > 3:
-    rotations -= f[target] + 4
+  print(matchIdx)
+  if matchIdx > 3:
+    print("inverting.")
+    rotations = matchIdx - f[target] - 4
     invert = True
   else: 
-    rotations -= f[target]
+    rotations = matchIdx - f[target]
 
-  return [invert, rotations]
-
-#Row ends target = 2, even row = 1, odd row = 3
-def getMatchEdge(edgeList, matchIdx, target):
-  revMod = 0 if matchIdx <= 3 else 4
-  matchEdge = edgeList[(matchIdx + target) % 4 + revMod]
-  return matchEdge
-
-def addToMap(nextMatch, edgeDict, matchEdge, target, tilemap, row):
-  matchIdx = edgeDict[nextMatch].index(matchEdge)
-  tile = [nextMatch] + getRotations(target, matchIdx)
+  tile = [nextMatch, invert, rotations]
+  print(tile)
   if row % 2 == 0:
     tilemap[row].append(tile)
   else:
     tilemap[row].insert(0, tile)
-  return matchIdx
 
 #Get the first corner to kick things off.
 def part2(edgeDict, matches):
@@ -64,30 +61,31 @@ def part2(edgeDict, matches):
   row = 0
 
   #We want next (corner) to face the matched face east and nextMatch to face west.
-  matchEdge = sorted(list(set(edgeDict[corner]) & set(edgeDict[nextMatch])))[0]
-  addToMap(corner, edgeDict, matchEdge, "East", tilemap, row)
+  edge = sorted(list(set(edgeDict[corner]) & set(edgeDict[nextMatch])))[0]
+  matchIdx = edgeDict[corner].index(edge)
+  addToMap(corner, matchIdx, "East", tilemap, row)
   matches.pop(corner)
   
-  target = "West"
-  matchIdx = addToMap(nextMatch, edgeDict, matchEdge, target, tilemap, row)
+  matchIdx = edgeDict[nextMatch].index(edge)
+  addToMap(nextMatch, matchIdx, "West", tilemap, row)
   curMatch = matches.pop(nextMatch)
 
   #Keep going til we hit a corner. 
   while len(curMatch) == 3:
-    revMod = 0 if matchIdx <= 3 else 4
-    matchEdge = edgeDict[nextMatch][(matchIdx + 2) % revMod] #MatchEdge needs to stay in the range (0-3, 4-7) of the prior matchIdx
+    edge = getEdge(edgeDict[nextMatch], matchIdx, 2)
     for match in matches:
-      if matchEdge in edgeDict[match]:
-        matchIdx = addToMap(match, edgeDict, matchEdge, target, tilemap, row)
+      if edge in edgeDict[match]:
+        matchIdx = edgeDict[nextMatch].index(edge)
+        addToMap(match, matchIdx, "West", tilemap, row)
         nextMatch = match
     curMatch = matches.pop(nextMatch)
 
   #We night need to flip. Handle flip check here. This should be the last time we need to hand check anything for a while.
   revMod = 0 if matchIdx <= 3 else 4
-  matchEdge = edgeDict[nextMatch][(matchIdx + 3) % revMod]
+  edge = edgeDict[nextMatch][(matchIdx + 3) % 4 + revMod]
   reverseRow = True
   for match in matches:
-    if matchEdge in edgeDict[match]:
+    if edge in edgeDict[match]:
       reverseRow = False
   if reverseRow:
     matchIdx += 2
@@ -103,22 +101,21 @@ def part2(edgeDict, matches):
   while matches:
     row += 1
     tilemap.append([])
-    target = "East" if row % 2 == 1 else "West"
-    turnMod = 3 if row % 2 == 1 else 1
-
-    revMod = 0 if matchIdx <= 3 else 4
-    matchEdge = edgeDict[nextMatch][(matchIdx + turnMod) % revMod]
+    edge = getEdge(edgeDict[nextMatch], matchIdx, 3 if row % 2 == 1 else 1)
     for match in matches:
-      if matchEdge in edgeDict[match]:
-        matchIdx = addToMap(match, edgeDict, matchEdge, "South", tilemap, row)
+      if edge in edgeDict[match]:
+        matchIdx = edgeDict[nextMatch].index(edge)
+        addToMap(match, matchIdx, "South", tilemap, row)
         nextMatch = match
     matches.pop(nextMatch)
 
-    while len(tilemap[row]) < len(tilemap[0]):
-      matchEdge = getMatchEdge(edgeDict[nextMatch], matchIdx, 2)
+    while len(tilemap[row]) < len(tilemap[0]):    
+      revMod = 0 if matchIdx <= 3 else 4
+      edge = getEdge(edgeDict[nextMatch], matchIdx, 2)
       for match in matches:
-        if matchEdge in edgeDict[match]:
-          matchIdx = addToMap(match, edgeDict, matchEdge, target, tilemap, row)
+        if edge in edgeDict[match]:
+          matchIdx = edgeDict[nextMatch].index(edge)
+          addToMap(match, matchIdx, ("East" if row % 2 == 1 else "West"), tilemap, row)
           nextMatch = match
       print(tilemap)
       matches.pop(nextMatch)
@@ -126,8 +123,8 @@ def part2(edgeDict, matches):
     #Now that we know how long a "row" is, let's automate.
     #Increment the row, append an empty list to it.
     #The first time should always be looking "down".
-      #If the row is even, that means looking for a matchEdge at the prior matchIdx + 3
-      #If the row is odd, that means looking for a matchEdge at the prior index + 1
+      #If the row is even, that means looking for a edge at the prior matchIdx + 3
+      #If the row is odd, that means looking for a edge at the prior index + 1
     #Add the tile.
     #Determine if you're going east or west.
     #Continue until you get to the end of the row
