@@ -4,23 +4,23 @@ def getEdge(target):
   edge = edgeDict[nextMatch][(matchIdx + target) % 4 + revMod]
   return edge
 
+#Input: The tile number and target facing
+#Output: a Tile list containing the tile number, inversion along the X and Y axes, and number of rotations to align.
 def addToMap(tileID, target):
-  invertX, invertY = False, False
+  invert = False
   if matchIdx > 3:
     rotations = matchIdx - target - 4
-    if target in [0, 2]: 
-      invertX = True
-    else:
-      invertY = True
+    invert = True
   else: 
     rotations = matchIdx - target
 
-  tile = [tileID, invertX, invertY, rotations]
-  print(tile)
+  tile = [tileID, invert, rotations]
+
   if row % 2 == 0:
     tilemap[row].append(tile)
   else:
     tilemap[row].insert(0, tile)
+  return tile
 
 #region Part 1
 with open("tiletest") as file:
@@ -32,8 +32,8 @@ edgeDict = {}
 matches = {}
 for tile in tiles:
   left =  "".join(tile[1][i][0] for i in range(len(tile[1])))
-  right = "".join(tile[1][i][-1] for i in range(len(tile[1])))
-  edgeDict[tile[0]] = [tile[1][0], right, tile[1][-1], left,  tile[1][0][::-1], right[::-1], tile[1][-1][::-1], left[::-1]]
+  right = "".join(tile[1][i][-1] for i in range(len(tile[1])))  
+  edgeDict[tile[0]] = [tile[1][0], right, tile[1][-1][::-1], left[::-1],  tile[1][0][::-1], right[::-1], tile[1][-1], left]
   matches[tile[0]] = []
 
 for i in range(len(tiles)):
@@ -56,8 +56,6 @@ for key, val in matches.items():
 row = 0
 print(matches)
 #endregion
-
-#IMPORTANT: REVERSING A TILE ONLY REVERSES A SINGLE AXIS. YOU NEED TO CHECK IF BOTH AXES ARE REVERSED!
 
 #region Part 2 First Row
   #Get the first corner to kick things off.
@@ -83,7 +81,11 @@ while len(curMatch) == 3:
   curMatch = matches.pop(nextMatch)
 
 #We night need to flip. Handle flip check here. This should be the last time we need to hand check anything for a while.
-edge = getEdge(3)
+#so rotating and flippign is totally borked. If you rotate a tile, all the orientations change.
+#West and South are always in reverse.
+
+edge = getEdge(-1)
+print(edge)
 reverseRow = True
 for match in matches:
   if edge in edgeDict[match]:
@@ -92,30 +94,32 @@ if reverseRow:
   matchIdx += 2
   for tile in tilemap[0]:
     if tile[1] == False:
-      tile[1] = True
+      tile[2] = True
     else:
-      tile[1] = False
+      tile[2] = False
 #endregion
 
 
-
-  #addToMap directions: {"North": 0, "East": 1, "South": 2, "West": 3}
   #edgeDict orientation: N, E, S, W, RN, RE, RS, RW
   #Object tile: [tilenumber, reversed, rotation (1 = 90 degrees clockwise)]
 
 while matches:
   row += 1
   tilemap.append([])
-  edge = getEdge(3 if row % 2 == 1 else 1)
+  edge = getEdge(-1 if row % 2 == 1 else 1)
+  print(edge)
   for match in matches:
     if edge in edgeDict[match]:
       matchIdx = edgeDict[nextMatch].index(edge)
       addToMap(match, f["North"])
       nextMatch = match
   matches.pop(nextMatch)
+  edge = getEdge(-1 if row % 2 == 1 else 1)
+  print(edge)
+  print(edgeDict[nextMatch].index(edge))
+  print(edgeDict[nextMatch])
 
   while len(tilemap[row]) < len(tilemap[0]):
-    edge = getEdge(2)
     for match in matches:
       if edge in edgeDict[match]:
         matchIdx = edgeDict[nextMatch].index(edge)
@@ -123,6 +127,7 @@ while matches:
         nextMatch = match
     print(tilemap)
     matches.pop(nextMatch)
+    edge = getEdge(2)
 
   break
 print(tilemap)
