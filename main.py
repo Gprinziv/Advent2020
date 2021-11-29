@@ -1,20 +1,23 @@
-#Row ends target = 2, even row = 1, odd row = 3
-def getEdge(target):
+def getOppEdge():
   revMod = 0 if matchIdx <= 3 else 4
-  edge = edgeDict[nextMatch][(matchIdx + target) % 4 + revMod]
+  edge = edgeDict[nextMatch][(matchIdx + 2) % 4 + revMod]
   return edge
 
-#Input: The tile number and target facing
-#Output: a Tile list containing the tile number, inversion along the X and Y axes, and number of rotations to align.
+def getCornerEdge(target):
+  pass
+
 def addToMap(tileID, target):
-  invert = False
+  flipX, flipY = False, False
   if matchIdx > 3:
     rotations = matchIdx - target - 4
-    invert = True
+    if target == 0:
+      flipX = True
+    else:
+      flipY = True
   else: 
     rotations = matchIdx - target
 
-  tile = [tileID, invert, rotations]
+  tile = [tileID, flipY, flipX, rotations]
 
   if row % 2 == 0:
     tilemap[row].append(tile)
@@ -33,7 +36,7 @@ matches = {}
 for tile in tiles:
   left =  "".join(tile[1][i][0] for i in range(len(tile[1])))
   right = "".join(tile[1][i][-1] for i in range(len(tile[1])))  
-  edgeDict[tile[0]] = [tile[1][0], right, tile[1][-1][::-1], left[::-1],  tile[1][0][::-1], right[::-1], tile[1][-1], left]
+  edgeDict[tile[0]] = [tile[1][0], right, tile[1][-1], left,  tile[1][0], right[::-1], tile[1][-1][::-1], left[::-1]]
   matches[tile[0]] = []
 
 for i in range(len(tiles)):
@@ -57,9 +60,8 @@ row = 0
 print(matches)
 #endregion
 
-#region Part 2 First Row
-  #Get the first corner to kick things off.
-  #We want the corner to face the matched face east and nextMatch to face west.
+#region Part 2 First Tiles
+#First, we need to find the two matching edges from wahtever we decided was the corner.
 f = {"North": 0, "East": 1, "South": 2, "West": 3}
 edge = sorted(list(set(edgeDict[corner]) & set(edgeDict[nextMatch])))[0]
 matchIdx = edgeDict[corner].index(edge)
@@ -70,9 +72,9 @@ matchIdx = edgeDict[nextMatch].index(edge)
 addToMap(nextMatch, f["West"])
 curMatch = matches.pop(nextMatch)
 
-#Keep going til we hit a corner. 
+  #Keep going til we hit a corner. 
 while len(curMatch) == 3:
-  edge = getEdge(2)
+  edge = getOppEdge()
   for match in matches:
     if edge in edgeDict[match]:
       matchIdx = edgeDict[match].index(edge)
@@ -80,11 +82,11 @@ while len(curMatch) == 3:
       nextMatch = match
   curMatch = matches.pop(nextMatch)
 
-#We night need to flip. Handle flip check here. This should be the last time we need to hand check anything for a while.
-#so rotating and flippign is totally borked. If you rotate a tile, all the orientations change.
-#West and South are always in reverse.
+edge = getCornerEdge(f["South"]) #Write this code
 
-edge = getEdge(-1)
+#If the corner isn't reversed, 
+
+
 print(edge)
 reverseRow = True
 for match in matches:
@@ -94,15 +96,16 @@ if reverseRow:
   matchIdx += 2
   for tile in tilemap[0]:
     if tile[1] == False:
-      tile[2] = True
+      tile[1] = True
     else:
-      tile[2] = False
+      tile[1] = False
 #endregion
 
 
   #edgeDict orientation: N, E, S, W, RN, RE, RS, RW
   #Object tile: [tilenumber, reversed, rotation (1 = 90 degrees clockwise)]
 
+#revisit this later. It's not ready until I can create a stable map for the fudging tiles.
 while matches:
   row += 1
   tilemap.append([])
@@ -127,7 +130,7 @@ while matches:
         nextMatch = match
     print(tilemap)
     matches.pop(nextMatch)
-    edge = getEdge(2)
+    edge = getOppEdge()
 
   break
 print(tilemap)
