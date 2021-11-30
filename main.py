@@ -1,29 +1,20 @@
 def getOppEdge():
-  revMod = 0 if matchIdx <= 3 else 4
-  edge = edgeDict[nextMatch][(matchIdx + 2) % 4 + revMod]
-  return edge
+  opposite = {0:2, 1:3, 2:0, 3:1, 4:6, 5:7, 6:4, 7:5}
+  return edgeDict[nextMatch][opposite[edgeIdx]]
 
-def getCornerEdge(target):
-  pass
+def getCorner(target):
+  north = {0:1, 1:4, 2:7, 3:0, 4:3, 5:6, 6:5, 7:2}
+  south = {0:1, 1:6, 2:5, 3:2, 4:3, 5:4, 6:7, 7:0}
+  if target == 1:
+    return edgeDict[nextMatch][north[edgeIdx]]
+  else:
+    return edgeDict[nextMatch][south[edgeIdx]]
 
 def addToMap(tileID, target):
-  flipX, flipY = False, False
-  if matchIdx > 3:
-    rotations = matchIdx - target - 4
-    if target == 0:
-      flipX = True
-    else:
-      flipY = True
-  else: 
-    rotations = matchIdx - target
-
-  tile = [tileID, flipY, flipX, rotations]
-
   if row % 2 == 0:
-    tilemap[row].append(tile)
+    tilemap[row].append([tileID, edgeIdx, target])
   else:
-    tilemap[row].insert(0, tile)
-  return tile
+    tilemap[row].insert(0, [tileID, edgeIdx, target])
 
 #region Part 1
 with open("tiletest") as file:
@@ -49,88 +40,77 @@ total = 1
 for tile, match in matches.items():
   if len(match) == 2:
     total *= tile
-print(total)
 
 tilemap = [[]]
 for key, val in matches.items():
   if len(val) == 2:
     corner = key
     nextMatch = val[0]
-row = 0
+#endregion
+#region Part 1 output
+#print(total)
 print(matches)
 #endregion
 
-#region Part 2 First Tiles
+#region Part 2 First Row
 #First, we need to find the two matching edges from wahtever we decided was the corner.
-f = {"North": 0, "East": 1, "South": 2, "West": 3}
+row = 0
 edge = sorted(list(set(edgeDict[corner]) & set(edgeDict[nextMatch])))[0]
-matchIdx = edgeDict[corner].index(edge)
-addToMap(corner, f["East"])
+edgeIdx = edgeDict[corner].index(edge)
+addToMap(corner, "East")
 matches.pop(corner)
-  
-matchIdx = edgeDict[nextMatch].index(edge)
-addToMap(nextMatch, f["West"])
+
+edgeIdx = edgeDict[nextMatch].index(edge)
+addToMap(nextMatch, "West")
 curMatch = matches.pop(nextMatch)
 
-  #Keep going til we hit a corner. 
+#Keep going til we hit a corner. 
 while len(curMatch) == 3:
   edge = getOppEdge()
-  for match in matches:
-    if edge in edgeDict[match]:
-      matchIdx = edgeDict[match].index(edge)
-      addToMap(match, f["West"])
-      nextMatch = match
+  for tile in matches:
+    if edge in edgeDict[tile]:
+      edgeIdx = edgeDict[tile].index(edge)
+      addToMap(tile, "West")
+      nextMatch = tile
   curMatch = matches.pop(nextMatch)
-
-edge = getCornerEdge(f["South"]) #Write this code
-
-#If the corner isn't reversed, 
-
-
-print(edge)
-reverseRow = True
-for match in matches:
-  if edge in edgeDict[match]:
-    reverseRow = False
-if reverseRow:
-  matchIdx += 2
-  for tile in tilemap[0]:
-    if tile[1] == False:
-      tile[1] = True
-    else:
-      tile[1] = False
 #endregion
-
-
-  #edgeDict orientation: N, E, S, W, RN, RE, RS, RW
-  #Object tile: [tilenumber, reversed, rotation (1 = 90 degrees clockwise)]
-
-#revisit this later. It's not ready until I can create a stable map for the fudging tiles.
+#region Part 2 First Corner
+#Check South first. If you can't find it, reverse the entire tileset.
+edge = getCorner(-1)
+reverse = True
+for tile in matches:
+  if edge in edgeDict[tile]:
+    reverse = False
+if reverse:
+  for tile in tilemap[0]:
+    tile[1] = (tile[1] + 4) % 8
+  edgeIdx = (edgeIdx + 4) % 8
+#endregion
+#region Part 2 Loop to the end
 while matches:
   row += 1
+  print("Row " + str(row))
   tilemap.append([])
-  edge = getEdge(-1 if row % 2 == 1 else 1)
-  print(edge)
-  for match in matches:
-    if edge in edgeDict[match]:
-      matchIdx = edgeDict[nextMatch].index(edge)
-      addToMap(match, f["North"])
-      nextMatch = match
+  print(tilemap)
+  edge = getCorner(-1 if row % 2 == 1 else 1)
+  for tile in matches:
+    if edge in edgeDict[tile]:
+      edgeIdx = edgeDict[tile].index(edge)
+      addToMap(tile, "North")
+      nextMatch = tile
   matches.pop(nextMatch)
-  edge = getEdge(-1 if row % 2 == 1 else 1)
-  print(edge)
-  print(edgeDict[nextMatch].index(edge))
-  print(edgeDict[nextMatch])
-
+  print(tilemap)
+  edge = getCorner(-1 if row % 2 == 1 else 1)
   while len(tilemap[row]) < len(tilemap[0]):
-    for match in matches:
-      if edge in edgeDict[match]:
-        matchIdx = edgeDict[nextMatch].index(edge)
-        addToMap(match, f["East" if row % 2 == 1 else "West"])
-        nextMatch = match
-    print(tilemap)
+    for tile in matches:
+      if edge in edgeDict[tile]:
+        edgeIdx = edgeDict[tile].index(edge)
+        addToMap(tile, "East" if row % 2 == 1 else "West")
+        nextMatch = tile
     matches.pop(nextMatch)
     edge = getOppEdge()
+#Reverse east should point to north. What did I do?
 
-  break
+
+#endregion
 print(tilemap)
