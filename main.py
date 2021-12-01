@@ -116,7 +116,10 @@ while matches:
 #endregion
 print(tilemap)
 #region Create initial string array
-
+  #For each tile in a tilerow, figure out how many rotations it would take to face the given direction, and which axes would need to be reversed.
+  #Then, using that schema, create a 2d string array, removing the outer border.
+  #For each additional tile in the same tilerow, add to the end of each existing string.
+  #When you go to a new tilerow, append rows to the string array.
 #endregion
 #region search for nessie
 
